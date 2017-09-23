@@ -1,0 +1,2 @@
+To compie open terminal and navigate to chatapp folder and enter: make
+To run enter: ./chatapp {s|c} port
