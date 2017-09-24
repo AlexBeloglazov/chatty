@@ -23,36 +23,69 @@
 
 #include "../include/global.h"
 
+#include "server/server.cpp"
+#include "client/client.cpp"
+
+
 using namespace std;
 
+runtime_params *params;
 
-void parse_params(int ac, char *av[], runtime_config *cfg) {
-	if (ac == 3) {
-		cfg->is_server = string(av[1]) == "s";
-		cfg->port = av[2];
-		return;
-	}
-	cout << "Bad parameters\n";
+void print_usage(const char *exec)
+{
+	std::cout << "\nUSAGE: " << exec << " {c|s} <port>\n\n"
+			  << "Options:\n"
+			  << "\tc\tExecute in the client mode;\n"
+			  << "\ts\tExecute in the server mode;\n"
+			  << "\t<port>\tPort number to listen for connections on;\n\n";
 	exit(1);
-}
+};
 
-void server(runtime_config *config) {
-	
-}
-
-void client (runtime_config *config) {
-	while (1) {
-
+void get_public_address()
+{
+	int socket_fd;
+	struct sockaddr_in serv_addr, self_addr;
+	socklen_t addr_len = sizeof(self_addr);
+	if ((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+	{
+		cout << "ERROR openning UDP socket\n";
+		exit(1);
 	}
+	memset(&serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(LOOKUP_PORT);
+	inet_pton(AF_INET, LOOKUP_IP, &(serv_addr.sin_addr));
+	if (connect(socket_fd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	{
+		cout << "ERROR connecting to " << LOOKUP_IP << "\n";
+		exit(1);
+	}
+	getsockname(socket_fd, (sockaddr *)&self_addr, &addr_len);
+	char str_ip[INET_ADDRSTRLEN];
+	inet_ntop(self_addr.sin_family, &(self_addr.sin_addr), str_ip, sizeof(str_ip));
+	params->ip_address = string(str_ip);
+	struct hostent *host_info = gethostbyaddr(
+		&(self_addr.sin_addr), sizeof(struct in_addr), AF_INET);
+	params->hostname = string(host_info->h_name);
+	close(socket_fd);
 }
 
 
 int main(int argc, char **argv)
 {
-	runtime_config *config = new runtime_config();
 
-	parse_params(argc, argv, config);
-	(config->is_server) ? server(config) : client(config);
+	if (argc != 3) {
+		print_usage(argv[0]);
+	}
 
+	params = new runtime_params();
+	params->is_server = string(argv[1]) == "s";
+	params->is_logged = 0;
+	params->port = argv[2];
+	
+	get_public_address();
+
+	(params->is_server) ? server::run() : client::run();
+	
 	return 0;
 }
