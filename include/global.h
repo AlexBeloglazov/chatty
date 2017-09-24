@@ -19,38 +19,11 @@
 #define LOOKUP_IP "8.8.8.8"
 #define LOOKUP_PORT 53
 
-enum commands
-{
-    CMD_AUTHOR,
-    CMD_BLOCK,
-    CMD_BLOCKED,
-    CMD_BROADCAST,
-    CMD_EXIT,
-    CMD_IP,
-    CMD_LIST,
-    CMD_LOGIN,
-    CMD_LOGOUT,
-    CMD_PORT,
-    CMD_REFRESH,
-    CMD_SEND,
-    CMD_STATISTICS,
-    CMD_UNBLOCK,
-    CMD_UNKNOWN
-};
-
 struct runtime_params
 {
     bool is_server;
     bool is_logged;
     std::string hostname, ip_address, port;
-};
-
-struct statistics {
-
-};
-
-struct list {
-
 };
 
 extern runtime_params *params;

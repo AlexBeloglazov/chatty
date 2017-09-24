@@ -66,3 +66,42 @@ void print_error(char *command)
     printf("[%s:ERROR]\n", command);
     printf("[%s:END]\n", command);
 }
+
+void print_usage(const char *exec)
+{
+    std::cout << "\nUSAGE: " << exec << " {c|s} <port>\n\n"
+              << "Options:\n"
+              << "\tc\tExecute in the client mode;\n"
+              << "\ts\tExecute in the server mode;\n"
+              << "\t<port>\tPort number to listen for connections on;\n\n";
+    exit(1);
+};
+
+void get_public_address()
+{
+    int socket_fd;
+    struct sockaddr_in serv_addr, self_addr;
+    socklen_t addr_len = sizeof(self_addr);
+    if ((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+    {
+        std::cout << "ERROR openning UDP socket\n";
+        exit(1);
+    }
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(LOOKUP_PORT);
+    inet_pton(AF_INET, LOOKUP_IP, &(serv_addr.sin_addr));
+    if (connect(socket_fd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        std::cout << "ERROR connecting to " << LOOKUP_IP << "\n";
+        exit(1);
+    }
+    getsockname(socket_fd, (sockaddr *)&self_addr, &addr_len);
+    char str_ip[INET_ADDRSTRLEN];
+    inet_ntop(self_addr.sin_family, &(self_addr.sin_addr), str_ip, sizeof(str_ip));
+    params->ip_address = std::string(str_ip);
+    struct hostent *host_info = gethostbyaddr(
+        &(self_addr.sin_addr), sizeof(struct in_addr), AF_INET);
+    params->hostname = std::string(host_info->h_name);
+    close(socket_fd);
+}
