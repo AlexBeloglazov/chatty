@@ -53,18 +53,25 @@ char *str2char(std::string line) {
     return (char *) (line + "\n").c_str();
 }
 
-void print_success(char *command, char *outcome, bool print_outcome)
+void print_success(char *cmd, char *outcome, bool p_out)
 {
-    printf("[%s:SUCCESS]\n", command);
-    if (print_outcome)
-        printf("%s:%s", command, outcome);
-    printf("[%s:END]\n", command);
+    printf("[%s:SUCCESS]\n", cmd);
+    if (p_out)
+        printf("%s:%s", cmd, outcome);
+    printf("[%s:END]\n", cmd);
 }
 
-void print_error(char *command)
+void print_success(char *cmd, char *outcome)
 {
-    printf("[%s:ERROR]\n", command);
-    printf("[%s:END]\n", command);
+    printf("[%s:SUCCESS]\n", cmd);
+    printf("%s", outcome);
+    printf("[%s:END]\n", cmd);
+}
+
+void print_error(char *cmd)
+{
+    printf("[%s:ERROR]\n", cmd);
+    printf("[%s:END]\n", cmd);
 }
 
 void print_usage(const char *exec)

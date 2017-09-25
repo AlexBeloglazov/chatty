@@ -31,9 +31,6 @@ using namespace std;
 
 runtime_params *params;
 
-
-
-
 int main(int argc, char **argv)
 {
 

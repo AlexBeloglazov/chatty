@@ -4,16 +4,21 @@
 #define HOSTNAME_LEN 128
 #define PATH_LEN 256
 
-#include <iostream>
-#include <cstring>
+#include <stdlib.h>
+#include <stdio.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include <cstring>
+#include <iostream>
 #include <netdb.h>
-#include <vector>
 #include <sstream>
-#include "../include/helpers.h"
-#include "../include/cmds.h"
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <vector>
+
+#include "helpers.h"
+#include "cmds.h"
 
 #define AUTHOR "abelogla"
 #define LOOKUP_IP "8.8.8.8"
