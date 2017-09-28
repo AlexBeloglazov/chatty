@@ -1,5 +1,5 @@
-#ifndef CMDS_H
-#define CMDS_H
+#ifndef COMMANDS_H
+#define COMMANDS_H
 
 #include "global.h"
 
@@ -23,15 +23,9 @@ enum commands
     CMD_UNKNOWN
 };
 
-struct statistics
-{
-};
-
-struct list
-{
-};
 
 void cmd_author();
 void cmd_ip();
+int identify_command(std::string &);
 
 #endif
