@@ -1,4 +1,4 @@
-#include "cmds.cpp"
+#include "commands.cpp"
 
 namespace client
 {
@@ -8,9 +8,11 @@ fd_set read_fds, temp_read_fds;
 
 void handle_user_input()
 {
-    std::vector<std::string> *line;
-    line = read_stdin();
-    switch (identify_command(line->front()))
+    std::string cmd;
+    std::istringstream input;
+    read_stdin(input);
+    input >> cmd;
+    switch (identify_cmd(cmd))
     {
     case CMD_AUTHOR:
         cmd_author();
@@ -58,7 +60,6 @@ void handle_user_input()
     case CMD_UNKNOWN:
         break;
     }
-    delete line;
 }
 
 

@@ -10,6 +10,8 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <map>
+#include <algorithm>
 #include <netdb.h>
 #include <sstream>
 #include <sys/socket.h>
@@ -18,15 +20,9 @@
 #include <unistd.h>
 #include <vector>
 
-#include "prints.h"
-#include "helpers.h"
-#include "socket.h"
-#include "commands.h"
-
 #define AUTHOR "abelogla"
 #define LOOKUP_IP "8.8.8.8"
 #define LOOKUP_PORT 53
-#define META_LENGTH 8
 
 struct runtime_params
 {
@@ -37,16 +33,23 @@ struct runtime_params
 
 class Machine
 {
-    int fd, port, sent, rcvd;
-    bool is_logged;
-    std::string ip, hostname;
-    std::vector<Machine *> blocked;
-
     public:
+      int fd, port, sent, rcvd;
+      bool is_logged;
+      std::string ip, hostname;
+      std::vector<Machine *> blocked;
+      
       Machine(int f, int p, std::string i, std::string h) :
-      fd(f), port(p), ip(i), hostname(h), is_logged(0), sent(0), rcvd(0) {};
+        fd(f), port(p), ip(i), hostname(h), is_logged(0), sent(0), rcvd(0){};
 };
 
+#include "log.h"
+#include "helpers.h"
+#include "protocol.h"
+#include "commands.h"
+#include "messages.h"
+
 extern runtime_params *params;
+extern std::map<std::string, Machine*> *ip2machine;
 
 #endif

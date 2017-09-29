@@ -1,11 +1,12 @@
-#include "cmds.cpp"
+#include "commands.cpp"
+#include "messages.cpp"
 
 namespace server
 {
 
 int server_fd, max_fd;
 fd_set read_fds, temp_read_fds;
-std::vector<Machine *> clients;
+std::vector<Machine*> clients;
 
 
 int create_socket_open_port(int port)
@@ -42,22 +43,18 @@ int create_socket_open_port(int port)
 
 
 void handle_user_input() {
-    std::vector<std::string> *line;
-    line = read_stdin();
-    switch (identify_command(line->front()))
+    std::string cmd;
+    std::istringstream input;
+    read_stdin(input);
+    input >> cmd;
+    switch (identify_cmd(cmd))
     {
 
     case CMD_AUTHOR:
         cmd_author();
         break;
 
-    case CMD_BLOCK:
-        break;
-
     case CMD_BLOCKED:
-        break;
-
-    case CMD_BROADCAST:
         break;
 
     case CMD_EXIT:
@@ -74,32 +71,16 @@ void handle_user_input() {
     case CMD_LIST:
         break;
 
-    case CMD_LOGIN:
-        break;
-
-    case CMD_LOGOUT:
-        break;
-
     case CMD_PORT:
         cmd_port();
-        break;
-
-    case CMD_REFRESH:
-        break;
-
-    case CMD_SEND:
         break;
 
     case CMD_STATISTICS:
         break;
 
-    case CMD_UNBLOCK:
-        break;
-
     case CMD_UNKNOWN:
         break;
     }
-    delete line;
 }
 
 
@@ -111,22 +92,30 @@ int handle_new_client() {
         perror("ERROR accepting new client");
     }
     else {
-        // TODO sent a list of logged clients
-        std::stringstream *stream;
-        stream = new std::stringstream("oops");
-        int rcvd = read_from_socket(new_fd, stream);
-        if (rcvd <= 0) {
-            perror("ERROR handling new client");
+        std::stringstream stream;
+        if (read_packet(new_fd, &stream) <= 0)
+        {
+            std::cout << "ERROR handling new client";
             return -1;
         }
-        std::cout << stream->str() << "\n";
-        Machine *client = new Machine(
-            new_fd,
-            client_addrinfo.sin_port,
-            extract_ip(client_addrinfo),
-            std::string("")
-        );
+        
+        std::string msg, hostname, ip;
+        stream >> msg >> hostname;
+        if (msg != _MSG_LOGIN)
+        {
+            std::cout << "ERROR bad LOGIN message";
+            return -1;
+        }
+
+        // send a list of logged clients
+        msg_refresh(new_fd);
+
+        ip = extract_ip(client_addrinfo);
+        Machine *client = new Machine(new_fd, client_addrinfo.sin_port, 
+            ip, hostname);
         clients.push_back(client);
+        ip2machine->insert(std::pair<std::string, Machine*>(ip, client));
+        
         FD_SET(new_fd, &read_fds);
         if (new_fd > max_fd)
             max_fd = new_fd;
@@ -134,6 +123,17 @@ int handle_new_client() {
     return new_fd;
 }
 
+void handle_incoming_data(int fd) {
+    std::stringstream stream;
+    read_packet(fd, &stream);
+    std::string msg;
+    stream >> msg;
+    switch(identify_msg(msg)) {
+        case MSG_REFRESH:
+        msg_refresh(fd);
+        break;
+    }
+}
 
 void run()
 {
@@ -144,6 +144,28 @@ void run()
     max_fd = server_fd;
     
     while(1) {
+        // std::stringstream stream;
+        // stream.str("isdf.com 123.1213.123.123 noxik.com 192.168.2.2");
+        // std::string h, i;
+        // while(!stream.eof()) {
+        //     stream >> h >> i;
+        //     std::cout << h << " " << i << "\n";
+        // }
+
+        // Machine *g = new Machine(34, 8080, "127.0.0.1", "noxik.com");
+        // g->is_logged = 1;
+        // clients.push_back(g);
+
+        std::stringstream stream("some string is here");
+        std::string b;
+        std::cout << stream.tellg() << "\n";
+        stream >> b;
+        std::cout << b << " " << stream.tellg() << "\n";
+        stream.ignore(200, ' ');
+        char f[70] = {0};
+        stream.readsome(f, 70);
+        std::cout << f << " " << stream.tellg() << "\n";
+
         temp_read_fds = read_fds;
         if (select(max_fd + 1, &temp_read_fds, NULL, NULL, NULL) == -1)
         {
@@ -164,7 +186,7 @@ void run()
                 }
                 // clients data
                 else {
-                    std::cout << "new data!\n";                
+                    handle_incoming_data(i);              
                 }
             }
         }

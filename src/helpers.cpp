@@ -1,17 +1,27 @@
 #include "../include/helpers.h"
 
+bool cmp_ports(Machine *l, Machine *r) {
+    return (l->port > r->port);
+}
 
-std::vector<std::string> *read_stdin()
+std::string extract_ip(struct sockaddr_in &sa)
 {
-    std::vector<std::string> *out = new std::vector<std::string>();
-    std::string line, component;
+    char str_ip[INET_ADDRSTRLEN];
+    inet_ntop(sa.sin_family, &(sa.sin_addr), str_ip, sizeof(str_ip));
+    return std::string(str_ip);
+}
+
+bool is_valid_ip(const std::string &ip)
+{
+    struct sockaddr_in sa;
+    return inet_pton(AF_INET, &ip[0], &(sa.sin_addr)) == 1;
+}
+
+void read_stdin(std::istringstream &inp)
+{
+    std::string line;
     std::getline(std::cin, line);
-    std::stringstream stream(line);
-    while(stream >> component) {
-        out->push_back(component);
-    }
-    if (out->empty()) out->push_back(std::string());
-    return out;
+    inp.str(line);
 }
 
 

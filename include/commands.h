@@ -3,6 +3,20 @@
 
 #include "global.h"
 
+#define _CMD_AUTHOR "AUTHOR"
+#define _CMD_BLOCK "BLOCK"
+#define _CMD_BLOCKED "BLOCKED"
+#define _CMD_BROADCAST "BROADCAST"
+#define _CMD_EXIT "EXIT"
+#define _CMD_IP "IP"
+#define _CMD_LIST "LIST"
+#define _CMD_LOGIN "LOGIN"
+#define _CMD_LOGOUT "LOGOUT"
+#define _CMD_PORT "PORT"
+#define _CMD_REFRESH "REFRESH"
+#define _CMD_SEND "SEND"
+#define _CMD_STATISTICS "STATISTICS"
+#define _CMD_UNBLOCK "UNBLOCK"
 
 enum commands
 {
@@ -23,9 +37,8 @@ enum commands
     CMD_UNKNOWN
 };
 
-
 void cmd_author();
 void cmd_ip();
-int identify_command(std::string &);
+int identify_cmd(std::string &);
 
 #endif

@@ -30,6 +30,44 @@
 using namespace std;
 
 runtime_params *params;
+map<string, Machine*> *ip2machine;
+
+void print_usage(const char *exec)
+{
+	std::cout << "\nUSAGE: " << exec << " {c|s} <port>\n\n"
+			  << "Options:\n"
+			  << "\tc\tExecute in the client mode;\n"
+			  << "\ts\tExecute in the server mode;\n"
+			  << "\t<port>\tPort number to listen for connections on;\n\n";
+	exit(1);
+};
+
+void get_public_address()
+{
+	int socket_fd;
+	struct sockaddr_in serv_addr, self_addr;
+	socklen_t addr_len = sizeof(self_addr);
+	if ((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+	{
+		perror("ERROR openning UDP socket");
+		exit(1);
+	}
+	memset(&serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(LOOKUP_PORT);
+	inet_pton(AF_INET, LOOKUP_IP, &(serv_addr.sin_addr));
+	if (connect(socket_fd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	{
+		perror((std::string("ERROR connecting to ") + std::string(LOOKUP_IP)).c_str());
+		exit(1);
+	}
+	getsockname(socket_fd, (sockaddr *)&self_addr, &addr_len);
+	params->ip_address = extract_ip(self_addr);
+	struct hostent *host_info = gethostbyaddr(
+		&(self_addr.sin_addr), sizeof(struct in_addr), AF_INET);
+	params->hostname = std::string(host_info->h_name);
+	close(socket_fd);
+}
 
 int main(int argc, char **argv)
 {
@@ -37,6 +75,8 @@ int main(int argc, char **argv)
 	if (argc != 3) {
 		print_usage(argv[0]);
 	}
+
+	ip2machine = new map<string, Machine*>();
 
 	params = new runtime_params();
 	params->is_server = string(argv[1]) == "s";
