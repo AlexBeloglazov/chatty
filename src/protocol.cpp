@@ -9,16 +9,17 @@ int send_packet(int fd, std::string message)
 
     meta << std::setfill('0') << std::setw(META_LENGTH) << message.length();
     message = meta.str() + message;
-
-    m_len = message.length();
-    while (b_total < m_len)
-    {
-        b_sent = send(fd, &message[0] + b_total, m_len - b_total, 0);
-        if (b_sent == -1)
-            break;
-        b_total += b_sent;
-    }
-    return b_sent == -1 ? -1 : 0;
+std::cout << message << "\n";
+    // m_len = message.length();
+    // while (b_total < m_len)
+    // {
+    //     b_sent = send(fd, &message[0] + b_total, m_len - b_total, 0);
+    //     if (b_sent == -1)
+    //         break;
+    //     b_total += b_sent;
+    // }
+    return 324;
+    // return b_sent == -1 ? -1 : 0;
 }
 
 int readall(int fd, char *buffer, int length) {

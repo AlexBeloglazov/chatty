@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <map>
 #include <algorithm>
+#include <limits>
 #include <netdb.h>
 #include <sstream>
 #include <sys/socket.h>

@@ -3,7 +3,7 @@
 
 #include "global.h"
 
-void print_error(char *);
+void print_error(const char *);
 void print_success(const char *, char *, bool);
 void print_success(const char *, char *);
 

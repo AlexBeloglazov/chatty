@@ -7,6 +7,7 @@ namespace server
 int server_fd, max_fd;
 fd_set read_fds, temp_read_fds;
 std::vector<Machine*> clients;
+std::map<std::string, std::vector<std::string>*> buffered_msg;
 
 
 int create_socket_open_port(int port)
@@ -55,6 +56,11 @@ void handle_user_input() {
         break;
 
     case CMD_BLOCKED:
+        {
+        std::string ip;
+        input >> ip;
+        cmd_blocked(ip);
+        }
         break;
 
     case CMD_EXIT:
@@ -69,6 +75,7 @@ void handle_user_input() {
         break;
 
     case CMD_LIST:
+        cmd_list(&clients);
         break;
 
     case CMD_PORT:
@@ -76,11 +83,35 @@ void handle_user_input() {
         break;
 
     case CMD_STATISTICS:
+        cmd_statistics();
         break;
 
     case CMD_UNKNOWN:
         break;
     }
+}
+
+
+void send_buffered_msg(int fd, const std::string &ip) {
+    std::map<std::string, std::vector<std::string>*>::iterator it;
+    std::stringstream out;
+    it = buffered_msg.find(ip);
+    if (it == buffered_msg.end() || it->second->empty()) {
+        out << _MSG_BUFFERED << " 0";
+    }
+    else {
+        std::vector<std::string> *msgs = it->second;
+        std::vector<std::string>::iterator itv;
+
+        out << _MSG_BUFFERED << " " << msgs->size();
+
+        for (itv = msgs->begin(); itv != msgs->end(); ++itv)
+        {
+            out << " " << itv->length() << " " << *itv;
+        }
+        msgs->clear();
+    }
+    send_packet(fd, out.str());
 }
 
 
@@ -107,13 +138,20 @@ int handle_new_client() {
             return -1;
         }
 
+        ip = extract_ip(client_addrinfo);
+
         // send a list of logged clients
         msg_refresh(new_fd);
 
-        ip = extract_ip(client_addrinfo);
-        Machine *client = new Machine(new_fd, client_addrinfo.sin_port, 
-            ip, hostname);
+        // send buffered messages if such exist
+        send_buffered_msg(new_fd, ip);
+
+        Machine *client = new Machine(new_fd, client_addrinfo.sin_port,
+                                      ip, hostname);
+        // remember the client
         clients.push_back(client);
+        
+        // add to the IP->Machine map
         ip2machine->insert(std::pair<std::string, Machine*>(ip, client));
         
         FD_SET(new_fd, &read_fds);
@@ -121,6 +159,21 @@ int handle_new_client() {
             max_fd = new_fd;
     }
     return new_fd;
+}
+
+void buffer_msg(std::stringstream &ss, std::string dst_ip) {
+    std::map<std::string, std::vector<std::string> *>::iterator it;
+    // just in case restore the stream
+    ss.seekg(0, ss.beg);
+    it = buffered_msg.find(dst_ip);
+    if (it == buffered_msg.end())
+    {
+        std::vector<std::string> *val = new std::vector<std::string>();
+        it = buffered_msg.insert(
+            std::pair<std::string, std::vector<std::string>*>(dst_ip, val)).first;
+    }
+    std::vector<std::string> *buffer = it->second;
+    buffer->push_back(ss.str());
 }
 
 void handle_incoming_data(int fd) {
@@ -144,7 +197,7 @@ void run()
     max_fd = server_fd;
     
     while(1) {
-        // std::stringstream stream;
+        std::stringstream stream;
         // stream.str("isdf.com 123.1213.123.123 noxik.com 192.168.2.2");
         // std::string h, i;
         // while(!stream.eof()) {
@@ -152,19 +205,35 @@ void run()
         //     std::cout << h << " " << i << "\n";
         // }
 
-        // Machine *g = new Machine(34, 8080, "127.0.0.1", "noxik.com");
-        // g->is_logged = 1;
-        // clients.push_back(g);
+        Machine *g = new Machine(34, 90, "128.205.36.34", "euston.cse.buffalo.edu");
+        g->is_logged = 1;
+        clients.push_back(g);
+        g = new Machine(456, 91, "128.205.36.33", "highgate.cse.buffalo.edu");
+        g->is_logged = 1;
+        clients.push_back(g);
+        // for (int i=0; i<150; i++) {
+        //     stream.str("SEND noxik.com 192.168.1.1 Hey Dude, how are you?");
+        //     buffer_msg(stream, g->ip);
+        // }
 
-        std::stringstream stream("some string is here");
-        std::string b;
-        std::cout << stream.tellg() << "\n";
-        stream >> b;
-        std::cout << b << " " << stream.tellg() << "\n";
-        stream.ignore(200, ' ');
-        char f[70] = {0};
-        stream.readsome(f, 70);
-        std::cout << f << " " << stream.tellg() << "\n";
+        // msg_refresh(43);
+        // send_buffered_msg(45, g->ip);
+
+        // std::istringstream stream("10 noxik is O4 Daae");
+        // std::string b;
+        // while (!stream.eof()) {
+        //     int l;
+        //     stream >> l;
+        //     read_from_stream(stream, l, b);
+        //     std::cout << b << "\n";
+        // }
+        // std::cout << stream.tellg() << "\n";
+        // stream >> b;
+        // std::cout << b << " " << stream.tellg() << "\n";
+        // stream.ignore(200, ' ');
+        // char f[70] = {0};
+        // stream.readsome(f, 70);
+        // std::cout << f << " " << stream.tellg() << "\n";
 
         temp_read_fds = read_fds;
         if (select(max_fd + 1, &temp_read_fds, NULL, NULL, NULL) == -1)

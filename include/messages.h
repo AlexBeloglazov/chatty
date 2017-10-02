@@ -5,11 +5,13 @@
 
 #define _MSG_LOGIN "LOGIN"
 #define _MSG_REFRESH "REFRESH"
+#define _MSG_BUFFERED "BUFFERED"
 
 enum messages
 {
     MSG_LOGIN,
     MSG_REFRESH,
+    MSG_BUFFERED,
     MSG_UNKNOWN
 };
 

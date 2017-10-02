@@ -15,7 +15,7 @@ void print_success(const char *cmd, char *outcome)
     printf("[%s:END]\n", cmd);
 }
 
-void print_error(char *cmd)
+void print_error(const char *cmd)
 {
     printf("[%s:ERROR]\n", cmd);
     printf("[%s:END]\n", cmd);

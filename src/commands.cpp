@@ -13,6 +13,26 @@ void cmd_ip()
     print_success(_CMD_IP, str2char(params->ip_address), 1);
 }
 
+void cmd_list(std::vector<Machine*> *ml) {
+    std::stringstream stream;
+    std::string out;
+    std::vector<Machine*>::iterator it;
+    int index = 0;
+    ml_sort_by_port(ml);
+    for (it = ml->begin(); it != ml->end(); ++it) {
+        if (!(*it)->is_logged) {
+            continue;
+        }
+        stream << std::left << std::setw(5) << ++index
+            << std::setw(35) << (*it)->hostname
+            << std::setw(20) << (*it)->ip
+            << std::setw(8) << (*it)->port << "\n";
+        out += stream.str();
+        stream.str(std::string());
+    }
+    print_success(_CMD_LIST, &out[0]);
+}
+
 int identify_cmd(std::string &cmd)
 {
     commands out;
