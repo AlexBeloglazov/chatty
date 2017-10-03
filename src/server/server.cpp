@@ -210,6 +210,13 @@ void handle_incoming_data(int fd)
         break;
     }
 
+    case MSG_UNBLOCK:
+    {
+        std::string who, whom;
+        stream >> who >> whom;
+        msg_unblock(who, whom);
+        break;
+    }
     }
 }
 

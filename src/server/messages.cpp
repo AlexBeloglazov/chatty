@@ -32,6 +32,17 @@ void msg_block(const std::string &who, const std::string &whom) {
     who_m->blocked.push_back(whom_m);
 }
 
+void msg_unblock(const std::string &who, const std::string &whom) {
+    std::vector<Machine*>::iterator blocked;
+    Machine *who_m = get_machine(who);
+    for(blocked = who_m->blocked.begin(); blocked != who_m->blocked.end(); ++blocked) {
+        if ((*blocked)->ip == whom) {
+            who_m->blocked.erase(blocked);
+            break;
+        }
+    }
+}
+
 void msg_send(std::stringstream &stream) {
     std::string from_ip, to_ip, packet;
     stream >> from_ip >> to_ip;
