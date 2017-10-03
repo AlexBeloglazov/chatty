@@ -3,11 +3,10 @@
 
 #include "global.h"
 
-#define _RELAYED "RELAYED"
-
 #define _CMD_AUTHOR "AUTHOR"
 #define _CMD_BLOCK "BLOCK"
 #define _CMD_BLOCKED "BLOCKED"
+#define _CMD_BROADCAST "BROADCAST"
 #define _CMD_EXIT "EXIT"
 #define _CMD_IP "IP"
 #define _CMD_LIST "LIST"
@@ -24,6 +23,7 @@ enum commands
     CMD_AUTHOR,
     CMD_BLOCK,
     CMD_BLOCKED,
+    CMD_BROADCAST,
     CMD_EXIT,
     CMD_IP,
     CMD_LIST,

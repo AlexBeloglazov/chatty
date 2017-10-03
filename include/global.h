@@ -27,6 +27,9 @@
 #define LOOKUP_IP "8.8.8.8"
 #define LOOKUP_PORT 53
 
+#define _RELAYED "RELAYED"
+#define _RECEIVED "RECEIVED"
+
 struct runtime_params
 {
     bool is_server;

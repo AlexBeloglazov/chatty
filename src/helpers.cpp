@@ -38,6 +38,12 @@ bool is_valid_ip(const std::string &ip)
     return inet_pton(AF_INET, &ip[0], &(sa.sin_addr)) == 1;
 }
 
+bool is_number(const std::string &number) {
+    std::string::const_iterator it = number.begin();
+    while(it != number.end() && isdigit(*it)) ++it;
+    return !number.empty() && it == number.end();
+}
+
 void read_stdin(std::istringstream &inp)
 {
     std::string line;
@@ -47,7 +53,8 @@ void read_stdin(std::istringstream &inp)
 
 void read_from_stream(std::istringstream &ss, int l, std::string &buf) {
     buf.resize(l);
-    ss.ignore(1);
+    ss >> std::ws;
+    // ss.ignore(1);
     ss.read(&buf[0], l);
 }
 

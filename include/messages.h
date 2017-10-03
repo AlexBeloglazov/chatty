@@ -7,6 +7,9 @@
 #define _MSG_UNBLOCK "UNBLOCK"
 #define _MSG_BUFFERED "BUFFERED"
 #define _MSG_LOGIN "LOGIN"
+#define _MSG_LOGOUT "LOGOUT"
+#define _MSG_EXIT "EXIT"
+
 #define _MSG_REFRESH "REFRESH"
 
 enum messages
@@ -14,6 +17,8 @@ enum messages
     MSG_BLOCK,
     MSG_BUFFERED,
     MSG_LOGIN,
+    MSG_LOGOUT,
+    MSG_EXIT,
     MSG_REFRESH,
     MSG_UNBLOCK,
     MSG_UNKNOWN

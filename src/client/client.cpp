@@ -1,3 +1,4 @@
+#include "messages.cpp"
 #include "commands.cpp"
 
 namespace client
@@ -5,6 +6,7 @@ namespace client
 
 int connection_fd = -1, max_fd;
 fd_set read_fds, temp_read_fds;
+std::vector<Machine *> peers;
 
 void handle_user_input()
 {
@@ -24,6 +26,9 @@ void handle_user_input()
     case CMD_BLOCKED:
         break;
 
+    case CMD_BROADCAST:
+        break;
+
     case CMD_EXIT:
         exit(0);
         break;
@@ -36,7 +41,12 @@ void handle_user_input()
         break;
 
     case CMD_LOGIN:
+    {
+        std::string server_ip, server_port;
+        input >> server_ip >> server_port;
+        cmd_login(server_ip, server_port);
         break;
+    }
 
     case CMD_LOGOUT:
         break;
@@ -59,11 +69,33 @@ void handle_user_input()
     }
 }
 
+void handle_server_message()
+{
+    std::stringstream stream;
+    std::string msg, who, whom;
 
-void handle_server_message() {
+    int rcvd = read_packet(connection_fd, &stream);
 
+    // the server closed the connection
+    if (rcvd <= 0)
+    {
+        return;
+    }
+
+    stream >> msg;
+
+    switch (identify_msg(msg))
+    {
+
+    case MSG_SEND:
+    {
+        msg_send(stream);
+        break;
+    }
+
+
+    }
 }
-
 
 void run()
 {

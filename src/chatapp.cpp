@@ -58,25 +58,38 @@ void get_public_address()
 	int socket_fd;
 	struct sockaddr_in serv_addr, self_addr;
 	socklen_t addr_len = sizeof(self_addr);
+	
 	if ((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
 	{
-		perror("ERROR openning UDP socket");
+		perror("ERROR creating UDP socket");
 		exit(1);
 	}
+	
 	memset(&serv_addr, 0, sizeof(serv_addr));
+	
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(LOOKUP_PORT);
 	inet_pton(AF_INET, LOOKUP_IP, &(serv_addr.sin_addr));
+	
 	if (connect(socket_fd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
 		perror((std::string("ERROR connecting to ") + std::string(LOOKUP_IP)).c_str());
 		exit(1);
 	}
+	
 	getsockname(socket_fd, (sockaddr *)&self_addr, &addr_len);
+	
 	params->ip_address = extract_ip(self_addr);
+	
 	struct hostent *host_info = gethostbyaddr(
 		&(self_addr.sin_addr), sizeof(struct in_addr), AF_INET);
-	params->hostname = std::string(host_info->h_name);
+	
+	// if (host_info == NULL) {
+	// 	perror("Could not get hostname");
+	// 	exit(1);
+	// }
+	
+	// params->hostname = std::string(host_info->h_name);
 	close(socket_fd);
 }
 

@@ -60,15 +60,14 @@ void handle_user_input()
         std::string ip;
         input >> ip;
         cmd_blocked(ip);
+        break;
     }
-    break;
 
     case CMD_EXIT:
     {
         close(server_fd);
         exit(0);
     }
-    break;
 
     case CMD_IP:
         cmd_ip();
@@ -150,6 +149,12 @@ int handle_new_client() {
         // send buffered messages if such exist
         send_buffered_msg(new_fd, ip);
 
+        FD_SET(new_fd, &read_fds);
+        if (new_fd > max_fd)
+            max_fd = new_fd;
+
+        // TODO HANDLE CASE OF LOGIN AFTER LOGOUT
+
         Machine *client = new Machine(new_fd, client_addrinfo.sin_port,
                                       ip, hostname);
         // remember the client
@@ -157,10 +162,6 @@ int handle_new_client() {
         
         // add to the IP->Machine map
         ip2machine->insert(std::pair<std::string, Machine*>(ip, client));
-        
-        FD_SET(new_fd, &read_fds);
-        if (new_fd > max_fd)
-            max_fd = new_fd;
     }
     return new_fd;
 }
@@ -186,15 +187,40 @@ void buffer_msg(std::stringstream &ss, std::string dst_ip) {
 void handle_incoming_data(int fd)
 {
     std::stringstream stream;
-    read_packet(fd, &stream);
-    std::string msg;
+    std::string msg, who, whom;
+    int rcvd = read_packet(fd, &stream);
+
+    // a client closed the connection
+    if (rcvd <= 0) {
+        return;
+    }
+
     stream >> msg;
+
     switch (identify_msg(msg))
     {
 
+    case MSG_EXIT:
+    {
+        stream >> who;
+        msg_exit(who);
+        break;
+    }
+
+    case MSG_LOGIN:
+    {
+        break;
+    }
+
+    case MSG_LOGOUT:
+    {
+        stream >> who;
+        msg_logout(who);
+        break;
+    }
+
     case MSG_BLOCK:
     {
-        std::string who, whom;
         stream >> who >> whom;
         msg_block(who, whom);
         break;
@@ -212,7 +238,6 @@ void handle_incoming_data(int fd)
 
     case MSG_UNBLOCK:
     {
-        std::string who, whom;
         stream >> who >> whom;
         msg_unblock(who, whom);
         break;
@@ -238,7 +263,7 @@ void run()
         // }
 
         Machine *g = new Machine(34, 90, "128.205.36.34", "euston.cse.buffalo.edu");
-        // g->is_logged = 1;
+        g->is_logged = 1;
         clients.push_back(g);
         ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
         g = new Machine(456, 91, "128.205.36.33", "highgate.cse.buffalo.edu");
@@ -246,11 +271,19 @@ void run()
         clients.push_back(g);
         ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
 
-        // stream.str("some text here");
-        // std::string s, v , w, x;
+        stream.str("some message here");
+
+        std::string s, v , w, x;
+
+        // stream >> s;
+        // v = stream.str();
+        // stream >> std::ws;
+        // stream >> std::ws;
+
+        // v = v.substr((int) stream.tellg());
         // stream >> s >> s >> s;
         // char *f = &stream.str()[stream.tellg()] + 1;
-        // std::cout << s << "\n";
+        std::cout << s << "\n" << v << "\n";
      
 
         // for (int i=0; i<150; i++) {

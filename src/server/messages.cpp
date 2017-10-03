@@ -2,6 +2,7 @@ namespace server {
 
 extern std::vector<Machine *> clients;
 extern void buffer_msg(std::stringstream &, std::string);
+extern std::map<std::string, std::vector<std::string> *> buffered_msg;
 
 void msg_refresh(int fd)
 {
@@ -43,6 +44,52 @@ void msg_unblock(const std::string &who, const std::string &whom) {
     }
 }
 
+void msg_logout(const std::string &who)
+{
+    Machine *who_m = get_machine(who);
+    who_m->is_logged = 0;
+}
+
+void msg_exit(const std::string &who)
+{
+
+    Machine *who_m = get_machine(who);
+
+    // remove from ip2machine
+    ip2machine->erase(who);
+
+    // remove from clients
+    std::vector<Machine *>::iterator it;
+    for (it = clients.begin(); it != clients.end(); ++it)
+    {
+        if ((*it) == who_m)
+        {
+            clients.erase(it);
+            break;
+        }
+    }
+
+    // remove from blocked lists
+    for (it = clients.begin(); it != clients.end(); ++it)
+    {
+        msg_unblock((*it)->ip, who);
+    }
+
+    // remove from buffered_msg, delete vector object
+    std::map<std::string, std::vector<std::string> *>::iterator bufit;
+    bufit = buffered_msg.find(who);
+    if (bufit != buffered_msg.end()) {
+        delete bufit->second;
+        buffered_msg.erase(bufit);
+    }
+
+    // close socket
+    close(who_m->fd);
+
+    // destruct Machine
+    delete who_m;
+}
+
 void msg_send(std::stringstream &stream) {
     std::string from_ip, to_ip, packet;
     stream >> from_ip >> to_ip;
@@ -68,7 +115,6 @@ void msg_send(std::stringstream &stream) {
         }
         else if (!rcv->is_logged) {
             buffer_msg(stream, rcv->ip);
-            std::cout << "buffering..." << "\n";
         }
         else {
             send_packet(rcv->fd, stream.str());
