@@ -45,7 +45,7 @@ int create_socket_open_port(int port)
 void handle_user_input()
 {
     std::string cmd;
-    std::istringstream input;
+    std::stringstream input;
     read_stdin(input);
     input >> cmd;
     switch (identify_cmd(cmd))

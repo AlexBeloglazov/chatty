@@ -32,17 +32,6 @@ using namespace std;
 runtime_params *params;
 map<string, Machine*> *ip2machine;
 
-
-bool Machine::is_blocked_ip(const std::string &ip)
-{
-	std::vector<Machine*>::iterator it;
-	for (it = this->blocked.begin(); it != this->blocked.end(); ++it) {
-		if (ip == (*it)->ip) return 1;
-	}
-	return 0;
-}
-
-
 void print_usage(const char *exec)
 {
 	std::cout << "\nUSAGE: " << exec << " {c|s} <port>\n\n"
@@ -80,16 +69,18 @@ void get_public_address()
 	getsockname(socket_fd, (sockaddr *)&self_addr, &addr_len);
 	
 	params->ip_address = extract_ip(self_addr);
+
+	cout << params->ip_address << "\n";
 	
 	struct hostent *host_info = gethostbyaddr(
 		&(self_addr.sin_addr), sizeof(struct in_addr), AF_INET);
 	
-	// if (host_info == NULL) {
-	// 	perror("Could not get hostname");
-	// 	exit(1);
-	// }
+	if (host_info == NULL) {
+		perror("Could not get hostname");
+		exit(1);
+	}
 	
-	// params->hostname = std::string(host_info->h_name);
+	params->hostname = std::string(host_info->h_name);
 	close(socket_fd);
 }
 

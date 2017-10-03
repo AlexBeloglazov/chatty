@@ -37,19 +37,7 @@ struct runtime_params
     std::string hostname, ip_address, port;
 };
 
-class Machine
-{
-  public:
-    int fd, port, sent, rcvd;
-    bool is_logged;
-    std::string ip, hostname;
-    std::vector<Machine *> blocked;
-
-    Machine(int f, int p, std::string i, std::string h) : fd(f), port(p), ip(i), hostname(h), is_logged(0), sent(0), rcvd(0){};
-
-    bool is_blocked_ip(const std::string &);
-};
-
+#include "machine.h"
 #include "log.h"
 #include "helpers.h"
 #include "protocol.h"
@@ -57,6 +45,6 @@ class Machine
 #include "messages.h"
 
 extern runtime_params *params;
-extern std::map<std::string, Machine*> *ip2machine;
+extern std::map<std::string, Machine *> *ip2machine;
 
 #endif

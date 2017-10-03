@@ -4,6 +4,8 @@ namespace client
 
 extern int connection_fd;
 extern fd_set read_fds;
+extern std::vector<std::string> blocked_ip;
+extern Machine *self;
 
 void cmd_login(std::string &server_ip, std::string &server_port)
 {
@@ -114,6 +116,121 @@ void cmd_refresh() {
 
     print_success(_CMD_REFRESH, NULL, 0);
 
+}
+
+void cmd_send(std::stringstream &stream) {
+    std::string to_ip, msg;
+    std::stringstream msg_stream;
+
+    if (connection_fd == -1)
+    {
+        print_error(_CMD_SEND);
+        return;
+    }
+
+    stream >> to_ip;
+    stream >> std::ws;
+
+    if (!is_valid_ip(to_ip) || get_machine(to_ip, peers) == NULL)
+    {
+        print_error(_CMD_SEND);
+        return;
+    }
+
+    msg = stream.str().substr(stream.tellg());
+
+    msg_stream << _MSG_SEND << " "
+               << params->ip_address << " "
+               << BROADCAST_IP << " "
+               << msg;
+
+    send_packet(connection_fd, msg_stream.str());
+
+    print_success(_CMD_SEND, NULL, 0);
+}
+
+void cmd_broadcast(std::stringstream &stream) {
+    std::string msg;
+    std::stringstream msg_stream;
+
+    if (connection_fd == -1)
+    {
+        print_error(_CMD_BROADCAST);
+        return;
+    }
+
+    stream >> std::ws;
+    
+    msg = stream.str().substr(stream.tellg());
+    
+    msg_stream << _MSG_SEND << " "
+               << params->ip_address << " "
+               << BROADCAST_IP << " "
+               << msg;
+    
+    send_packet(connection_fd, msg_stream.str());
+
+    print_success(_CMD_BROADCAST, NULL, 0);
+}
+
+void cmd_block(std::stringstream &stream) {
+    std::string whom;
+    std::stringstream packet_stream;
+    stream >> whom;
+
+    if (connection_fd == -1 || !is_valid_ip(whom))
+    {
+        print_error(_CMD_BLOCK);
+        return;
+    }
+
+    Machine *whom_m = get_machine(whom, peers);
+
+    if (whom_m == NULL || self->is_blocked_ip(whom)) {
+        print_error(_CMD_BLOCK);
+        return;
+    }
+
+    self->block(whom_m);
+
+    packet_stream << _CMD_BLOCK << " "
+                  << params->ip_address << " "
+                  << whom;
+    
+    send_packet(connection_fd, packet_stream.str());
+
+    print_success(_MSG_BLOCK, NULL, 0);
+
+}
+
+void cmd_unblock(std::stringstream &stream) {
+    std::string whom;
+    stream >> whom;
+
+    if (connection_fd == -1 || !is_valid_ip(whom))
+    {
+        print_error(_CMD_UNBLOCK);
+        return;
+    }
+
+    Machine *whom_m = get_machine(whom, peers);
+
+    if (whom_m == NULL || !self->is_blocked_ip(whom))
+    {
+        print_error(_CMD_UNBLOCK);
+        return;
+    }
+
+    self->unblock(whom);
+
+    std::stringstream packet_stream;
+    packet_stream << _MSG_UNBLOCK << " "
+                  << params->ip_address << " "
+                  << whom;
+        
+    send_packet(connection_fd, packet_stream.str());
+
+    print_success(_CMD_UNBLOCK, NULL, 0);
 }
 
 
