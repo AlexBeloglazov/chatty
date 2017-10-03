@@ -38,6 +38,7 @@ void handle_user_input()
         break;
 
     case CMD_LIST:
+        cmd_list(&peers);
         break;
 
     case CMD_LOGIN:
@@ -56,6 +57,7 @@ void handle_user_input()
         break;
 
     case CMD_REFRESH:
+        cmd_refresh();
         break;
 
     case CMD_SEND:

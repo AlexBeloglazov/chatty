@@ -87,4 +87,34 @@ void cmd_port()
     else
         print_error((char *)"PORT");
 }
+
+
+void cmd_refresh() {
+
+    std::string packet = _MSG_REFRESH, msg;
+    std::stringstream stream;
+
+    if (connection_fd == -1) {
+        print_error(_CMD_REFRESH);
+        return;
+    }
+
+    send_packet(connection_fd, packet);
+
+    read_packet(connection_fd, &stream);
+
+    stream >> msg;
+
+    if(msg != _MSG_REFRESH) {
+        std::cout << "ERROR while REFRESH";
+        return;
+    }
+
+    msg_refresh(stream);
+
+    print_success(_CMD_REFRESH, NULL, 0);
+
+}
+
+
 }
