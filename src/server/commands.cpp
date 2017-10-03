@@ -22,6 +22,7 @@ void cmd_statistics() {
                << std::setw(8) << (*it)->rcvd
                << std::setw(8) << ((*it)->is_logged ? logged : loggedout) << "\n";
         out += stream.str();
+        stream.clear();
         stream.str(std::string());
     }
     print_success(_CMD_STATISTICS, &out[0]);
@@ -45,6 +46,7 @@ void cmd_blocked(const std::string &ip) {
                << std::setw(20) << (*itb)->ip
                << std::setw(8) << (*itb)->port << "\n";
         out += stream.str();
+        stream.clear();
         stream.str(std::string());
     }
     print_success(_CMD_BLOCKED, &out[0]);

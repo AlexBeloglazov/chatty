@@ -24,9 +24,6 @@ void handle_user_input()
     case CMD_BLOCKED:
         break;
 
-    case CMD_BROADCAST:
-        break;
-
     case CMD_EXIT:
         exit(0);
         break;

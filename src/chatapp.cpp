@@ -32,6 +32,17 @@ using namespace std;
 runtime_params *params;
 map<string, Machine*> *ip2machine;
 
+
+bool Machine::is_blocked_ip(const std::string &ip)
+{
+	std::vector<Machine*>::iterator it;
+	for (it = this->blocked.begin(); it != this->blocked.end(); ++it) {
+		if (ip == (*it)->ip) return 1;
+	}
+	return 0;
+}
+
+
 void print_usage(const char *exec)
 {
 	std::cout << "\nUSAGE: " << exec << " {c|s} <port>\n\n"

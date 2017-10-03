@@ -19,6 +19,12 @@ void ml_remove_by_ip(std::vector<Machine*> *mlist, const std::string &ip) {
     }
 }
 
+Machine *get_machine(const std::string &ip) {
+    std::map<std::string, Machine *>::iterator it;
+    it = ip2machine->find(ip);
+    return (it == ip2machine->end()) ? NULL : it->second;
+}
+
 std::string extract_ip(struct sockaddr_in &sa)
 {
     char str_ip[INET_ADDRSTRLEN];

@@ -22,6 +22,8 @@
 #include <vector>
 
 #define AUTHOR "abelogla"
+
+#define BROADCAST_IP "255.255.255.255"
 #define LOOKUP_IP "8.8.8.8"
 #define LOOKUP_PORT 53
 
@@ -34,14 +36,15 @@ struct runtime_params
 
 class Machine
 {
-    public:
-      int fd, port, sent, rcvd;
-      bool is_logged;
-      std::string ip, hostname;
-      std::vector<Machine *> blocked;
-      
-      Machine(int f, int p, std::string i, std::string h) :
-        fd(f), port(p), ip(i), hostname(h), is_logged(0), sent(0), rcvd(0){};
+  public:
+    int fd, port, sent, rcvd;
+    bool is_logged;
+    std::string ip, hostname;
+    std::vector<Machine *> blocked;
+
+    Machine(int f, int p, std::string i, std::string h) : fd(f), port(p), ip(i), hostname(h), is_logged(0), sent(0), rcvd(0){};
+
+    bool is_blocked_ip(const std::string &);
 };
 
 #include "log.h"

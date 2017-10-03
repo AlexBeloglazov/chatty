@@ -28,6 +28,7 @@ void cmd_list(std::vector<Machine*> *ml) {
             << std::setw(20) << (*it)->ip
             << std::setw(8) << (*it)->port << "\n";
         out += stream.str();
+        stream.clear();
         stream.str(std::string());
     }
     print_success(_CMD_LIST, &out[0]);
@@ -42,8 +43,6 @@ int identify_cmd(std::string &cmd)
         out = CMD_BLOCK;
     else if (cmd == _CMD_BLOCKED)
         out = CMD_BLOCKED;
-    else if (cmd == _CMD_BROADCAST)
-        out = CMD_BROADCAST;
     else if (cmd == _CMD_EXIT)
         out = CMD_EXIT;
     else if (cmd == _CMD_IP)

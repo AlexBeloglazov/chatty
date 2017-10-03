@@ -42,8 +42,8 @@ int create_socket_open_port(int port)
     return socket_fd;
 }
 
-
-void handle_user_input() {
+void handle_user_input()
+{
     std::string cmd;
     std::istringstream input;
     read_stdin(input);
@@ -56,19 +56,19 @@ void handle_user_input() {
         break;
 
     case CMD_BLOCKED:
-        {
+    {
         std::string ip;
         input >> ip;
         cmd_blocked(ip);
-        }
-        break;
+    }
+    break;
 
     case CMD_EXIT:
-        {
+    {
         close(server_fd);
         exit(0);
-        }
-        break;
+    }
+    break;
 
     case CMD_IP:
         cmd_ip();
@@ -91,7 +91,6 @@ void handle_user_input() {
     }
 }
 
-
 void send_buffered_msg(int fd, const std::string &ip) {
     std::map<std::string, std::vector<std::string>*>::iterator it;
     std::stringstream out;
@@ -107,8 +106,13 @@ void send_buffered_msg(int fd, const std::string &ip) {
 
         for (itv = msgs->begin(); itv != msgs->end(); ++itv)
         {
+            std::stringstream stream(*itv);
+            std::string cmd, from_ip, to_ip;
+            stream >> cmd >> from_ip >> to_ip;
+            get_machine(to_ip)->rcvd += 1;
             out << " " << itv->length() << " " << *itv;
         }
+        // clean up
         msgs->clear();
     }
     send_packet(fd, out.str());
@@ -163,8 +167,11 @@ int handle_new_client() {
 
 void buffer_msg(std::stringstream &ss, std::string dst_ip) {
     std::map<std::string, std::vector<std::string> *>::iterator it;
+    
     // just in case restore the stream
+    ss.clear();
     ss.seekg(0, ss.beg);
+    
     it = buffered_msg.find(dst_ip);
     if (it == buffered_msg.end())
     {
@@ -176,15 +183,33 @@ void buffer_msg(std::stringstream &ss, std::string dst_ip) {
     buffer->push_back(ss.str());
 }
 
-void handle_incoming_data(int fd) {
+void handle_incoming_data(int fd)
+{
     std::stringstream stream;
     read_packet(fd, &stream);
     std::string msg;
     stream >> msg;
-    switch(identify_msg(msg)) {
-        case MSG_REFRESH:
+    switch (identify_msg(msg))
+    {
+
+    case MSG_BLOCK:
+    {
+        std::string who, whom;
+        stream >> who >> whom;
+        msg_block(who, whom);
+        break;
+    }
+
+    case MSG_REFRESH:
         msg_refresh(fd);
         break;
+
+    case MSG_SEND:
+    {
+        msg_send(stream);
+        break;
+    }
+
     }
 }
 
@@ -206,11 +231,21 @@ void run()
         // }
 
         Machine *g = new Machine(34, 90, "128.205.36.34", "euston.cse.buffalo.edu");
-        g->is_logged = 1;
+        // g->is_logged = 1;
         clients.push_back(g);
+        ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
         g = new Machine(456, 91, "128.205.36.33", "highgate.cse.buffalo.edu");
         g->is_logged = 1;
         clients.push_back(g);
+        ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
+
+        // stream.str("some text here");
+        // std::string s, v , w, x;
+        // stream >> s >> s >> s;
+        // char *f = &stream.str()[stream.tellg()] + 1;
+        // std::cout << s << "\n";
+     
+
         // for (int i=0; i<150; i++) {
         //     stream.str("SEND noxik.com 192.168.1.1 Hey Dude, how are you?");
         //     buffer_msg(stream, g->ip);
