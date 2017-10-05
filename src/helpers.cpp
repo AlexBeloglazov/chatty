@@ -65,10 +65,5 @@ void read_stdin(std::stringstream &inp)
 void read_from_stream(std::istringstream &ss, int l, std::string &buf) {
     buf.resize(l);
     ss >> std::ws;
-    // ss.ignore(1);
     ss.read(&buf[0], l);
-}
-
-char *str2char(std::string &line) {
-    return (char *) (line + "\n").c_str();
 }

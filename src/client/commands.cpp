@@ -2,13 +2,16 @@
 namespace client
 {
 
-extern int connection_fd;
+extern int connection_fd, max_fd;
 extern fd_set read_fds;
 extern std::vector<std::string> blocked_ip;
 extern Machine *self;
 
-void cmd_login(std::string &server_ip, std::string &server_port)
+void cmd_login(std::stringstream &input)
 {
+    std::string server_ip, server_port;
+    input >> server_ip >> server_port;
+
     // check ip validity and whether we already logged-in
     if (connection_fd > -1 || !is_valid_ip(server_ip) || !is_number(server_port))
     {
@@ -41,16 +44,22 @@ void cmd_login(std::string &server_ip, std::string &server_port)
     std::stringstream stream;
     std::string msg;
 
+    stream << _MSG_LOGIN << " "
+           << self->hostname << " "
+           << self->port;
+    
+    send_packet(connection_fd, stream.str());
+
     if (read_packet(connection_fd, &stream) <= 0)
     {
-        std::cout << "ERROR could not get list of users";
+        std::cout << "ERROR could not get list of users\n";
         return;
     }
 
     stream >> msg;
 
     if (msg != _MSG_REFRESH) {
-        std::cout << "ERROR while parsing list of users";
+        std::cout << "ERROR while parsing list of users\n";
         return;
     }
 
@@ -58,7 +67,7 @@ void cmd_login(std::string &server_ip, std::string &server_port)
 
     if (read_packet(connection_fd, &stream) <= 0)
     {
-        std::cout << "ERROR could not get list of buffered messages";
+        std::cout << "ERROR could not get list of buffered messages\n";
         return;
     }
 
@@ -66,7 +75,7 @@ void cmd_login(std::string &server_ip, std::string &server_port)
 
     if (msg != _MSG_BUFFERED)
     {
-        std::cout << "ERROR while parsing list of buffered messages";
+        std::cout << "ERROR while parsing list of buffered messages\n";
         return;
     }
 
@@ -74,22 +83,40 @@ void cmd_login(std::string &server_ip, std::string &server_port)
 
     // add to the monitored FDs
     FD_SET(connection_fd, &read_fds);
+    if (connection_fd > max_fd)
+        max_fd = connection_fd;
+
+    self->is_logged = 1;
 
     print_success(_CMD_LOGIN, NULL, 0);
 }
 
 void cmd_logout()
 {
-}
+    std::stringstream packet_stream;
 
-void cmd_port()
-{
-    if (params->is_logged)
-        print_success((char *)"PORT", str2char(params->port), 1);
-    else
-        print_error((char *)"PORT");
-}
+    if (connection_fd == -1)
+    {
+        print_error(_CMD_LOGOUT);
+        return;
+    }
 
+    packet_stream << _MSG_LOGOUT << " "
+                  << self->ip;
+
+    send_packet(connection_fd, packet_stream.str());
+
+    if (max_fd == connection_fd)
+        max_fd--;
+
+    FD_CLR(connection_fd, &read_fds);
+    close(connection_fd);
+    
+    connection_fd = -1;
+    self->is_logged = 0;
+
+    print_success(_CMD_LOGOUT, NULL, 0);
+}
 
 void cmd_refresh() {
 
@@ -108,14 +135,13 @@ void cmd_refresh() {
     stream >> msg;
 
     if(msg != _MSG_REFRESH) {
-        std::cout << "ERROR while REFRESH";
+        std::cout << "ERROR while REFRESH\n";
         return;
     }
 
     msg_refresh(stream);
 
     print_success(_CMD_REFRESH, NULL, 0);
-
 }
 
 void cmd_send(std::stringstream &stream) {
@@ -141,7 +167,7 @@ void cmd_send(std::stringstream &stream) {
 
     msg_stream << _MSG_SEND << " "
                << params->ip_address << " "
-               << BROADCAST_IP << " "
+               << to_ip << " "
                << msg;
 
     send_packet(connection_fd, msg_stream.str());
@@ -200,7 +226,6 @@ void cmd_block(std::stringstream &stream) {
     send_packet(connection_fd, packet_stream.str());
 
     print_success(_MSG_BLOCK, NULL, 0);
-
 }
 
 void cmd_unblock(std::stringstream &stream) {
@@ -233,5 +258,16 @@ void cmd_unblock(std::stringstream &stream) {
     print_success(_CMD_UNBLOCK, NULL, 0);
 }
 
+void cmd_exit() {
+    if (connection_fd == -1) exit(0);
+
+    std::stringstream packet_stream;
+    packet_stream << _MSG_EXIT << " "
+                  << self->ip;
+
+    send_packet(connection_fd, packet_stream.str());
+
+    exit(0);
+}
 
 }

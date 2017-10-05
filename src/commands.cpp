@@ -5,12 +5,19 @@ void cmd_author()
     std::stringstream out;
     out << "I, " << AUTHOR
         << ", have read and understood the course academic integrity policy.\n";
-    print_success(_CMD_AUTHOR, (char *)out.str().c_str(), 1);
+    print_success(_CMD_AUTHOR, (char *)out.str().c_str());
 }
 
 void cmd_ip()
 {
-    print_success(_CMD_IP, str2char(params->ip_address), 1);
+    std::string ip = params->ip_address + "\n";
+    print_success(_CMD_IP, &ip[0], 1);
+}
+
+void cmd_port()
+{
+    std::string port = params->port + "\n";
+    print_success(_CMD_PORT, &port[0], 1);
 }
 
 void cmd_list(std::vector<Machine*> *ml) {
@@ -43,6 +50,8 @@ int identify_cmd(std::string &cmd)
         out = CMD_BLOCK;
     else if (cmd == _CMD_BLOCKED)
         out = CMD_BLOCKED;
+    else if (cmd == _CMD_BROADCAST)
+        out = CMD_BROADCAST;
     else if (cmd == _CMD_EXIT)
         out = CMD_EXIT;
     else if (cmd == _CMD_IP)

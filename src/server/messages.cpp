@@ -3,6 +3,7 @@ namespace server {
 extern std::vector<Machine *> clients;
 extern void buffer_msg(std::stringstream &, std::string);
 extern std::map<std::string, std::vector<std::string> *> buffered_msg;
+extern fd_set read_fds;
 
 void msg_refresh(int fd)
 {
@@ -47,7 +48,14 @@ void msg_unblock(const std::string &who, const std::string &whom) {
 void msg_logout(const std::string &who)
 {
     Machine *who_m = get_machine(who);
+    
     who_m->is_logged = 0;
+
+    // stop monitoring fd
+    FD_CLR(who_m->fd, &read_fds);
+
+    // close socket
+    close(who_m->fd);
 }
 
 void msg_exit(const std::string &who)
@@ -83,6 +91,9 @@ void msg_exit(const std::string &who)
         buffered_msg.erase(bufit);
     }
 
+    // stop monitoring fd
+    FD_CLR(who_m->fd, &read_fds);
+
     // close socket
     close(who_m->fd);
 
@@ -94,6 +105,7 @@ void msg_send(std::stringstream &stream) {
     std::string from_ip, to_ip, packet;
     stream >> from_ip >> to_ip;
     std::vector<Machine*> all_rcv = clients;
+
     if (to_ip != BROADCAST_IP) {
         all_rcv = std::vector<Machine *>();
         all_rcv.push_back(get_machine(to_ip));

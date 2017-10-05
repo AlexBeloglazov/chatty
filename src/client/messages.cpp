@@ -2,7 +2,7 @@ namespace client {
 
 extern int connection_fd;
 extern std::vector<Machine *> peers;
-
+extern Machine *self;
 
 void msg_refresh(std::stringstream &stream)
 {
@@ -12,14 +12,27 @@ void msg_refresh(std::stringstream &stream)
 
     // delete previous list of peers;
     std::vector<Machine*>::iterator it;
+
     for(it = peers.begin(); it != peers.end(); ++it) {
-        delete *it;
+
+        if ((*it) == self) continue;
+        
+        // if the peer is blocked, keep the pointer in the blocked vector
+        if (!self->is_blocked_ip((*it)->ip)) {
+            delete *it;
+        }
     }
+    
     peers.clear();
+    peers.push_back(self);
 
     for (int i = 0; i < p_count; ++i) {
         stream >> p_hostname >> p_ip >> p_port;
+
+        if (self->ip == p_ip) continue;
+
         Machine *peer = new Machine(-1, p_port, p_ip, p_hostname);
+        
         peer->is_logged = 1;
         peers.push_back(peer);
     }

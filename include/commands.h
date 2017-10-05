@@ -39,6 +39,7 @@ enum commands
 
 void cmd_author();
 void cmd_ip();
+void cmd_port();
 void cmd_list(std::vector<Machine *> *);
 int identify_cmd(std::string &);
 

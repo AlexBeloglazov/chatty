@@ -100,15 +100,17 @@ void send_buffered_msg(int fd, const std::string &ip) {
     else {
         std::vector<std::string> *msgs = it->second;
         std::vector<std::string>::iterator itv;
+        Machine *rcpt;
 
         out << _MSG_BUFFERED << " " << msgs->size();
+
+        rcpt = get_machine(ip);
 
         for (itv = msgs->begin(); itv != msgs->end(); ++itv)
         {
             std::stringstream stream(*itv);
-            std::string cmd, from_ip, to_ip;
-            stream >> cmd >> from_ip >> to_ip;
-            get_machine(to_ip)->rcvd += 1;
+
+            rcpt->rcvd += 1;
             out << " " << itv->length() << " " << *itv;
         }
         // clean up
@@ -134,7 +136,10 @@ int handle_new_client() {
         }
         
         std::string msg, hostname, ip;
-        stream >> msg >> hostname;
+        int port;
+        
+        stream >> msg >> hostname >> port;
+        
         if (msg != _MSG_LOGIN)
         {
             std::cout << "ERROR bad LOGIN message";
@@ -153,15 +158,21 @@ int handle_new_client() {
         if (new_fd > max_fd)
             max_fd = new_fd;
 
-        // TODO HANDLE CASE OF LOGIN AFTER LOGOUT
+        Machine *client = get_machine(ip);
 
-        Machine *client = new Machine(new_fd, client_addrinfo.sin_port,
-                                      ip, hostname);
-        // remember the client
-        clients.push_back(client);
+        // HANDLE CASE OF LOGIN AFTER LOGOUT
+        if (client == NULL)
+        {
+            client = new Machine(new_fd, port, ip, hostname);
+
+            // remember the client
+            clients.push_back(client);
+
+            // add to the IP->Machine map
+            ip2machine->insert(std::pair<std::string, Machine *>(ip, client));
+        }
         
-        // add to the IP->Machine map
-        ip2machine->insert(std::pair<std::string, Machine*>(ip, client));
+        client->is_logged = 1;
     }
     return new_fd;
 }
@@ -230,7 +241,7 @@ void handle_incoming_data(int fd)
         msg_refresh(fd);
         break;
 
-    case MSG_SEND:
+    case MSG_SEND_:
     {
         msg_send(stream);
         break;
@@ -254,75 +265,20 @@ void run()
     max_fd = server_fd;
     
     while(1) {
-        std::stringstream stream;
-        // stream.str("isdf.com 123.1213.123.123 noxik.com 192.168.2.2");
-        // std::string h, i;
-        // while(!stream.eof()) {
-        //     stream >> h >> i;
-        //     std::cout << h << " " << i << "\n";
-        // }
-
-        Machine *g = new Machine(34, 90, "128.205.36.34", "euston.cse.buffalo.edu");
-        g->is_logged = 1;
-        clients.push_back(g);
-        ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
-        g = new Machine(456, 91, "128.205.36.33", "highgate.cse.buffalo.edu");
-        g->is_logged = 1;
-        clients.push_back(g);
-        ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
-
-        stream.str("some message here");
-
-        std::string s, v , w, x;
-
-        // stream >> s;
-        // v = stream.str();
-        // stream >> std::ws;
-        // stream >> std::ws;
-
-        // v = v.substr((int) stream.tellg());
-        // stream >> s >> s >> s;
-        // char *f = &stream.str()[stream.tellg()] + 1;
-        std::cout << s << "\n" << v << "\n";
-     
-
-        // for (int i=0; i<150; i++) {
-        //     stream.str("SEND noxik.com 192.168.1.1 Hey Dude, how are you?");
-        //     buffer_msg(stream, g->ip);
-        // }
-
-        // msg_refresh(43);
-        // send_buffered_msg(45, g->ip);
-
-        // std::istringstream stream("10 noxik is O4 Daae");
-        // std::string b;
-        // while (!stream.eof()) {
-        //     int l;
-        //     stream >> l;
-        //     read_from_stream(stream, l, b);
-        //     std::cout << b << "\n";
-        // }
-        // std::cout << stream.tellg() << "\n";
-        // stream >> b;
-        // std::cout << b << " " << stream.tellg() << "\n";
-        // stream.ignore(200, ' ');
-        // char f[70] = {0};
-        // stream.readsome(f, 70);
-        // std::cout << f << " " << stream.tellg() << "\n";
 
         temp_read_fds = read_fds;
+
         if (select(max_fd + 1, &temp_read_fds, NULL, NULL, NULL) == -1)
         {
             perror("ERROR while SELECT");
             exit(1);
         }
+
         for (int i = 0; i <= max_fd; i++) {
             if(FD_ISSET(i, &temp_read_fds)) {
                 // new connection
                 if (i == server_fd) {
-                    std::cout << "new connection\n";
                     handle_new_client();
-                    exit(0);
                 }
                 // user input
                 else if (i == STDIN_FILENO) {
@@ -335,6 +291,7 @@ void run()
             }
         }
     }
+
     close(server_fd);
 }
 

@@ -4,7 +4,7 @@
 namespace client
 {
 
-int connection_fd = -1, max_fd;
+int connection_fd = -1, max_fd = 0;
 fd_set read_fds, temp_read_fds;
 Machine *self;
 std::vector<Machine *> peers;
@@ -30,7 +30,7 @@ void handle_user_input()
         break;
 
     case CMD_EXIT:
-        exit(0);
+        cmd_exit();
         break;
 
     case CMD_IP:
@@ -50,13 +50,12 @@ void handle_user_input()
         
     case CMD_LOGIN:
     {
-        std::string server_ip, server_port;
-        input >> server_ip >> server_port;
-        cmd_login(server_ip, server_port);
+        cmd_login(input);
         break;
     }
 
     case CMD_LOGOUT:
+        cmd_logout();
         break;
 
     case CMD_PORT:
@@ -87,7 +86,7 @@ void handle_server_message()
 
     int rcvd = read_packet(connection_fd, &stream);
 
-    // the server closed the connection
+    // most likely the server closed the connection
     if (rcvd <= 0)
     {
         return;
@@ -98,7 +97,7 @@ void handle_server_message()
     switch (identify_msg(msg))
     {
 
-    case MSG_SEND:
+    case MSG_SEND_:
     {
         msg_send(stream);
         break;
@@ -109,21 +108,12 @@ void handle_server_message()
 
 void run()
 {
-    std::cout << "client started!" << "\n";
     FD_ZERO(&read_fds);
     FD_SET(STDIN_FILENO, &read_fds);
     max_fd = STDIN_FILENO;
 
-    Machine *g = new Machine(34, 90, "128.205.36.34", "euston.cse.buffalo.edu");
-    g->is_logged = 1;
-    peers.push_back(g);
-    ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
-    g = new Machine(456, 91, "128.205.36.33", "highgate.cse.buffalo.edu");
-    g->is_logged = 1;
-    peers.push_back(g);
-    ip2machine->insert(std::pair<std::string, Machine *>(g->ip, g));
-
     self = new Machine(-1, std::atoi(params->port.c_str()), params->ip_address, params->hostname);
+    peers.push_back(self);
 
     while(1) {
         temp_read_fds = read_fds;
@@ -139,7 +129,6 @@ void run()
                 // message from server
                 if (i == connection_fd)
                 {
-                    std::cout << "server message\n";
                     handle_server_message();
                 }
                 // user input

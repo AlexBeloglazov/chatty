@@ -69,8 +69,6 @@ void get_public_address()
 	getsockname(socket_fd, (sockaddr *)&self_addr, &addr_len);
 	
 	params->ip_address = extract_ip(self_addr);
-
-	cout << params->ip_address << "\n";
 	
 	struct hostent *host_info = gethostbyaddr(
 		&(self_addr.sin_addr), sizeof(struct in_addr), AF_INET);

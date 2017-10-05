@@ -4,11 +4,6 @@ namespace server
 
 extern std::vector<Machine *> clients;
 
-void cmd_port()
-{
-    print_success(_CMD_PORT, str2char(params->port), 1);
-}
-
 void cmd_statistics() {
     std::vector<Machine *>::iterator it;
     std::string out;
