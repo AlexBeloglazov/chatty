@@ -1,7 +1,16 @@
+/*
+ * protocol.cpp : File contains main protocol methods: send_packet, read_packet
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
+
 #include "../include/protocol.h"
 
-
-
+/* 
+ * Method writes a string of characters into socket
+ * @input fd file descriptor to write characters into
+ * @input message C++ string to write into the socket
+ */
 int send_packet(int fd, std::string message)
 {
     int m_len, b_sent, b_total = 0;
@@ -22,6 +31,12 @@ int send_packet(int fd, std::string message)
     return b_sent == -1 ? -1 : 0;
 }
 
+/* 
+ * Method reads specified number of bytes from socket into a buffer
+ * @input fd file descriptor to read from
+ * @input buffer array where to store read characters
+ * @length number of bytes to read
+ */
 int readall(int fd, char *buffer, int length) {
     int b_total = 0, b_received = 0;
     while (b_total < length) {
@@ -37,6 +52,11 @@ int readall(int fd, char *buffer, int length) {
     return b_total;
 }
 
+/* 
+ * Method reads a string of characters from a socket socket
+ * @input fd file descriptor to read characters from
+ * @input stream stringstream where to put those characters
+ */
 int read_packet(int fd, std::stringstream *stream)
 {
     int rcvd;

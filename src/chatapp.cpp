@@ -1,6 +1,6 @@
 /**
  * @author  Alexander Beloglazov <abelogla@buffalo.edu>
- * @version 1.0
+ * @version 0.1
  *
  * @section LICENSE
  *
@@ -14,10 +14,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
- *
- * @section DESCRIPTION
- *
- * This contains the main function. Add further description here....
  */
 
 
@@ -32,6 +28,10 @@ using namespace std;
 runtime_params *params;
 map<string, Machine*> *ip2machine;
 
+/* 
+ * Method prints usage message if command line arguments are not valid
+ * @input exec name of the executable
+ */
 void print_usage(const char *exec)
 {
 	std::cout << "\nUSAGE: " << exec << " {c|s} <port>\n\n"
@@ -42,6 +42,10 @@ void print_usage(const char *exec)
 	exit(1);
 };
 
+/* 
+ * Method obtains external IP address of the machine along with its hostname
+ * and saves them in the global structure params.
+ */
 void get_public_address()
 {
 	int socket_fd;
@@ -85,20 +89,24 @@ void get_public_address()
 int main(int argc, char **argv)
 {
 
-	if (argc != 3) {
+	if (argc != 3)
+	{
 		print_usage(argv[0]);
 	}
 
-	ip2machine = new map<string, Machine*>();
+	// instantiate new IP address to Machine map
+	ip2machine = new map<string, Machine *>();
 
+	// make a new instance of runtime_params structure
 	params = new runtime_params();
 	params->is_server = string(argv[1]) == "s";
 	params->is_logged = 0;
 	params->port = argv[2];
-	
+
+	// get hostname and public IP and save them in params
 	get_public_address();
 
 	(params->is_server) ? server::run() : client::run();
-	
+
 	return 0;
 }

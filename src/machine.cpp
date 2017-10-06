@@ -1,3 +1,9 @@
+/*
+ * machine.cpp : File contains methods implementation of class which represents a single machine
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
+
 #include "../include/machine.h"
 
 bool Machine::is_blocked_ip(const std::string &ip)

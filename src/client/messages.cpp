@@ -1,9 +1,19 @@
+/*
+ * messages.cpp : File contains handlers for different messages which a client can receive from server
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
+
 namespace client {
 
 extern int connection_fd;
 extern std::vector<Machine *> peers;
 extern Machine *self;
 
+/* 
+ * Handler for REFRESH message. Updates local list of peers
+ * @input stream stringstream which contains list of peers
+ */
 void msg_refresh(std::stringstream &stream)
 {
     std::string p_hostname, p_ip;
@@ -38,6 +48,10 @@ void msg_refresh(std::stringstream &stream)
     }
 }
 
+/* 
+ * Handler for SEND message. This message means we've got a message from peer
+ * @input stream stringstream contains meta information and the message itself
+ */
 void msg_send(std::stringstream &stream) {
     std::string from_ip, to_ip, msg;
     std::stringstream success_msg;
@@ -56,6 +70,10 @@ void msg_send(std::stringstream &stream) {
     print_success(_RECEIVED, &success_msg.str()[0]);
 }
 
+/* 
+ * Handler for BUFFERED message. Receives messages from the server which were buffered
+ * @input stream stringstream contains buffered messages
+ */
 void msg_buffered(std::stringstream &stream)
 {
     int m_count, m_size;
@@ -72,6 +90,7 @@ void msg_buffered(std::stringstream &stream)
         // just skip MSG part
         msg_stream >> msg;
         
+        // handle each message
         msg_send(msg_stream);
     }
 }

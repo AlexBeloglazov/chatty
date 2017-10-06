@@ -1,9 +1,17 @@
+/*
+ * commands.cpp : File contains handlers of the user commands in Server mode
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
 
 namespace server
 {
 
 extern std::vector<Machine *> clients;
 
+/* 
+ * Handler for user's STATISTICS command
+ */
 void cmd_statistics() {
     std::vector<Machine *>::iterator it;
     std::string out;
@@ -23,6 +31,9 @@ void cmd_statistics() {
     print_success(_CMD_STATISTICS, &out[0]);
 }
 
+/* 
+ * Handler for user's BLOCKED command
+ */
 void cmd_blocked(const std::string &ip) {
     std::map<std::string, Machine*>::iterator it;
     it = ip2machine->find(ip);

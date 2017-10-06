@@ -1,3 +1,8 @@
+/*
+ * commands.cpp : File contains handlers of the user commands in Client mode
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
 
 namespace client
 {
@@ -7,6 +12,10 @@ extern fd_set read_fds;
 extern std::vector<std::string> blocked_ip;
 extern Machine *self;
 
+/* 
+ * Handler for user's LOGIN command
+ * @input input stringstream contains user's input
+ */
 void cmd_login(std::stringstream &input)
 {
     std::string server_ip, server_port;
@@ -35,6 +44,7 @@ void cmd_login(std::stringstream &input)
 
     inet_pton(AF_INET, server_ip.c_str(), &(serv_addr.sin_addr));
 
+    // connect to the server
     if (connect(connection_fd, (sockaddr *)&serv_addr, addr_len) < 0)
     {
         perror((std::string("ERROR connecting to ") + server_ip).c_str());
@@ -44,12 +54,15 @@ void cmd_login(std::stringstream &input)
     std::stringstream stream;
     std::string msg;
 
+    // make LOGIN message for the server
     stream << _MSG_LOGIN << " "
            << self->hostname << " "
            << self->port;
     
+    // send LOGIN message
     send_packet(connection_fd, stream.str());
 
+    // read reply from the server
     if (read_packet(connection_fd, &stream) <= 0)
     {
         std::cout << "ERROR could not get list of users\n";
@@ -58,13 +71,16 @@ void cmd_login(std::stringstream &input)
 
     stream >> msg;
 
+    // check if the server replied with correct message type
     if (msg != _MSG_REFRESH) {
         std::cout << "ERROR while parsing list of users\n";
         return;
     }
 
+    // handle refresh message (the server sent is a list of current clients)
     msg_refresh(stream);
 
+    // next, read the buffered messages
     if (read_packet(connection_fd, &stream) <= 0)
     {
         std::cout << "ERROR could not get list of buffered messages\n";
@@ -73,12 +89,14 @@ void cmd_login(std::stringstream &input)
 
     stream >> msg;
 
+    // see if the server sent us a correct message type
     if (msg != _MSG_BUFFERED)
     {
         std::cout << "ERROR while parsing list of buffered messages\n";
         return;
     }
 
+    // handle message of type BUFFERED
     msg_buffered(stream);
 
     // add to the monitored FDs
@@ -86,11 +104,15 @@ void cmd_login(std::stringstream &input)
     if (connection_fd > max_fd)
         max_fd = connection_fd;
 
+    // set self as logged in
     self->is_logged = 1;
 
     print_success(_CMD_LOGIN, NULL, 0);
 }
 
+/* 
+ * Handler of user's LOGOUT command
+ */
 void cmd_logout()
 {
     std::stringstream packet_stream;
@@ -118,6 +140,9 @@ void cmd_logout()
     print_success(_CMD_LOGOUT, NULL, 0);
 }
 
+/* 
+ * Handler of user's REFRESH command
+ */
 void cmd_refresh() {
 
     std::string packet = _MSG_REFRESH, msg;
@@ -144,6 +169,10 @@ void cmd_refresh() {
     print_success(_CMD_REFRESH, NULL, 0);
 }
 
+/* 
+ * Handler of user's SEND command
+ * @input stream stringstream with user's input
+ */
 void cmd_send(std::stringstream &stream) {
     std::string to_ip, msg;
     std::stringstream msg_stream;
@@ -175,6 +204,9 @@ void cmd_send(std::stringstream &stream) {
     print_success(_CMD_SEND, NULL, 0);
 }
 
+/* 
+ * Handler of user's BROADCAST command
+ */
 void cmd_broadcast(std::stringstream &stream) {
     std::string msg;
     std::stringstream msg_stream;
@@ -199,6 +231,9 @@ void cmd_broadcast(std::stringstream &stream) {
     print_success(_CMD_BROADCAST, NULL, 0);
 }
 
+/* 
+ * Handler of user's BLOCK command
+ */
 void cmd_block(std::stringstream &stream) {
     std::string whom;
     std::stringstream packet_stream;
@@ -228,6 +263,9 @@ void cmd_block(std::stringstream &stream) {
     print_success(_MSG_BLOCK, NULL, 0);
 }
 
+/* 
+ * Handler of user's UNBLOCK command
+ */
 void cmd_unblock(std::stringstream &stream) {
     std::string whom;
     stream >> whom;
@@ -258,6 +296,9 @@ void cmd_unblock(std::stringstream &stream) {
     print_success(_CMD_UNBLOCK, NULL, 0);
 }
 
+/* 
+ * Handler of user's EXIT command
+ */
 void cmd_exit() {
     if (connection_fd == -1) exit(0);
 

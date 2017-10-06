@@ -1,3 +1,9 @@
+/*
+ * messages.cpp : File contains handlers for different messages which a server can receive from client
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
+
 namespace server {
 
 extern std::vector<Machine *> clients;
@@ -5,6 +11,10 @@ extern void buffer_msg(std::stringstream &, std::string);
 extern std::map<std::string, std::vector<std::string> *> buffered_msg;
 extern fd_set read_fds;
 
+/* 
+ * Handler for REFRESH message. Client wants to update its list of peers
+ * @input fd file descriptor where to send the list to
+ */
 void msg_refresh(int fd)
 {
     std::stringstream stream, payload;
@@ -25,6 +35,11 @@ void msg_refresh(int fd)
     send_packet(fd, stream.str());
 }
 
+/* 
+ * Handler for BLOCK message. Client wants to block someone
+ * @input who IP address of a client who performs blocking
+ * @input whom IP address of a client to block 
+ */
 void msg_block(const std::string &who, const std::string &whom) {
     std::map<std::string, Machine *>::iterator it;
     it = ip2machine->find(whom);
@@ -34,6 +49,11 @@ void msg_block(const std::string &who, const std::string &whom) {
     who_m->blocked.push_back(whom_m);
 }
 
+/* 
+ * Handler for UNBLOCK message. Client wants to unblock someone
+ * @input who IP address of a client who performs unblocking
+ * @input whom IP address of a client to unblock 
+ */
 void msg_unblock(const std::string &who, const std::string &whom) {
     std::vector<Machine*>::iterator blocked;
     Machine *who_m = get_machine(who);
@@ -45,6 +65,10 @@ void msg_unblock(const std::string &who, const std::string &whom) {
     }
 }
 
+/* 
+ * Handler for LOGOUT message. Client wants to logout
+ * @input who IP address of a client who logs out
+ */
 void msg_logout(const std::string &who)
 {
     Machine *who_m = get_machine(who);
@@ -58,6 +82,10 @@ void msg_logout(const std::string &who)
     close(who_m->fd);
 }
 
+/* 
+ * Handler for EXIT message. Client wants to exit
+ * @input who IP address of a client who wants to exit
+ */
 void msg_exit(const std::string &who)
 {
 
@@ -101,6 +129,10 @@ void msg_exit(const std::string &who)
     delete who_m;
 }
 
+/* 
+ * Handler for SEND message. Client wants to send a message to another client
+ * @input stream stringstream which contains meta information and message itself
+ */
 void msg_send(std::stringstream &stream) {
     std::string from_ip, to_ip, packet;
     stream >> from_ip >> to_ip;

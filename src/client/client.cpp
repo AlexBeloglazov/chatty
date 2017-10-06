@@ -1,3 +1,9 @@
+/*
+ * client.cpp : Main file for the client mode of the programm
+ * Created for CSE 589 Fall 2017 Programming Assignment 1
+ * @author Alexander Beloglazov
+ */
+
 #include "messages.cpp"
 #include "commands.cpp"
 
@@ -9,6 +15,9 @@ fd_set read_fds, temp_read_fds;
 Machine *self;
 std::vector<Machine *> peers;
 
+/* 
+ * Method reads STDIN and depending on which command has been entered, executes corresponding helper from commands.cpp
+ */
 void handle_user_input()
 {
     std::string cmd;
@@ -79,6 +88,9 @@ void handle_user_input()
     }
 }
 
+/* 
+ * Method reads STDIN and depending on which command has been entered, executes corresponding helper
+ */
 void handle_server_message()
 {
     std::stringstream stream;
@@ -106,6 +118,9 @@ void handle_server_message()
     }
 }
 
+/* 
+ * Method which executes the programm in the client mode
+ */
 void run()
 {
     FD_ZERO(&read_fds);
