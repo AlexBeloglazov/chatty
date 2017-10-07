@@ -14,7 +14,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: $(OBJ_PATH)
-	$(CC) -o chatapp $^ $(CFLAGS) $(LIBS)
+	$(CC) -o chatty $^ $(CFLAGS) $(LIBS)
 
 clean:
-	rm -f $(OBJ_DIR)/*.o $(INC_DIR)/*~ assignment1 ./logs/*
+	rm -f $(OBJ_DIR)/*.o $(INC_DIR)/*~ chatty

@@ -33,7 +33,7 @@
 
 
 *.dSYM
-chatapp
+chatty
 .tags
 object/
 .vscode/
